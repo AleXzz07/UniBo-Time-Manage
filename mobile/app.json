@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "UniBo Time",
+    "slug": "unibo-time-manager",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.unibotime.manager"
+    },
+    "android": {
+      "package": "com.unibotime.manager"
+    }
+  }
+}
