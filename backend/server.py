@@ -6,7 +6,6 @@ from typing import List, Optional
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI, HTTPException
-from motor.motor_asyncio import AsyncIOMotorClient
 from starlette.middleware.cors import CORSMiddleware
 
 from models import (
@@ -26,32 +25,21 @@ from models import (
 from university.provider import COURSES, UniversityDataProvider
 from university.repository import ScheduleRepository
 from university.service import UniversityDataService
+from supabase_adapter import SupabaseDatabase
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-mongo_url = (
-    os.getenv("MONGODB_URI")
-    or os.getenv("MONGO_URL")
-    or ""
-).strip()
-db_name = (
-    os.getenv("MONGODB_DB")
-    or os.getenv("DB_NAME")
-    or "unibo_planner"
-).strip()
+supabase_url = os.getenv("SUPABASE_URL", "").strip()
+supabase_secret_key = os.getenv("SUPABASE_SECRET_KEY", "").strip()
 
-if not mongo_url:
+if not supabase_url or not supabase_secret_key:
     raise RuntimeError(
-        "MongoDB non configurato: imposta MONGODB_URI su Render "
-        "(oppure MONGO_URL in sviluppo locale)."
+        "Supabase non configurato: imposta SUPABASE_URL e "
+        "SUPABASE_SECRET_KEY su Render."
     )
 
-client = AsyncIOMotorClient(
-    mongo_url,
-    serverSelectionTimeoutMS=7000,
-)
-db = client[db_name]
+db = SupabaseDatabase(supabase_url, supabase_secret_key)
 
 app = FastAPI(title="UniBo Planner API")
 api = APIRouter(prefix="/api")
@@ -62,22 +50,12 @@ repo = ScheduleRepository(db)
 
 @app.get("/health")
 async def health():
-    try:
-        await client.admin.command("ping")
-        return {
-            "ok": True,
-            "storage": "mongodb",
-            "databaseOk": True,
-            "database": db_name,
-        }
-    except Exception as exc:
-        return {
-            "ok": False,
-            "storage": "mongodb",
-            "databaseOk": False,
-            "database": db_name,
-            "error": type(exc).__name__,
-        }
+    database_ok = await db.ping()
+    return {
+        "ok": database_ok,
+        "storage": "supabase",
+        "databaseOk": database_ok,
+    }
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -383,6 +361,3 @@ app.add_middleware(
 )
 
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()

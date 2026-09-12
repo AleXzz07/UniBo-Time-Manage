@@ -8,7 +8,7 @@ services:
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
-      - key: MONGODB_URI
+      - key: SUPABASE_URL
         sync: false
-      - key: MONGODB_DB
-        value: unibo_planner
+      - key: SUPABASE_SECRET_KEY
+        sync: false

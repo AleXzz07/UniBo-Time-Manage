@@ -15,7 +15,7 @@ Clone pulito e distribuibile dell'app mobile fornita dall'utente.
 - Notifiche locali
 - Light/dark mode
 - Backend FastAPI
-- MongoDB Atlas
+- Supabase Postgres
 - Integrazione con l'endpoint JSON ufficiale UniBo `@@orario_reale_json`
 
 ## Struttura
@@ -27,17 +27,27 @@ render.yaml   deploy backend su Render
 PRD.md        requisiti/prodotto
 ```
 
-## 1. Backend su Render
+## 1. Crea il database Supabase
+
+1. Crea/apri un progetto Supabase.
+2. Vai in **SQL Editor**.
+3. Incolla ed esegui `supabase/schema.sql`.
+4. Da **Project Settings / API** recupera:
+   - `SUPABASE_URL`
+   - una **secret key** server-side.
+
+Non inserire mai la secret key nel frontend o nel repository.
+
+## 2. Backend su Render
 
 Crea un Blueprint usando `render.yaml`.
 
-Variabile obbligatoria:
+Render chiederà:
 
 ```text
-MONGODB_URI=mongodb+srv://...
+SUPABASE_URL
+SUPABASE_SECRET_KEY
 ```
-
-Il database predefinito è `unibo_planner`.
 
 Dopo il deploy verifica:
 
@@ -45,9 +55,13 @@ Dopo il deploy verifica:
 https://TUO-SERVIZIO.onrender.com/health
 ```
 
-deve restituire `databaseOk: true`.
+Deve restituire:
 
-## 2. Frontend
+```json
+{"ok": true, "storage": "supabase", "databaseOk": true}
+```
+
+## 3. Frontend
 
 Dentro `frontend/` crea `.env` copiando `.env.example`:
 
@@ -62,7 +76,7 @@ yarn install
 npx expo start
 ```
 
-## 3. APK
+## 4. APK
 
 ```bash
 npm install -g eas-cli
@@ -79,4 +93,4 @@ La versione originale esportata da Emergent conteneva file `.env`, cache e `node
 Questa copia li esclude intenzionalmente per non distribuire credenziali o file inutili.
 
 Il backend usa la stessa logica dell'app originale, ma accetta direttamente
-`MONGODB_URI` / `MONGODB_DB`, quindi è pronto per MongoDB Atlas + Render.
+`MONGODB_URI` / `MONGODB_DB`, quindi è pronto per Supabase Postgres + Render.
