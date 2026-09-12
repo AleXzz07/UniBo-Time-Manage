@@ -1,19 +1,22 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
 # Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
-backend/schedule_cache.json
-backend/.env
 
-# Node / Expo
-mobile/node_modules/
-mobile/.expo/
-mobile/.env
-mobile/dist/
+# JS / Expo
+node_modules/
+.expo/
+.metro-cache/
+dist/
+web-build/
 
-# OS / editors
+# OS / editor
 .DS_Store
-Thumbs.db
 .vscode/
 .idea/

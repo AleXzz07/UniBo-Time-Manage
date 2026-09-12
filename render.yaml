@@ -1,19 +1,14 @@
 services:
   - type: web
-    name: unibo-time-manager-api
+    name: unibo-planner-api
     runtime: python
-    plan: free
     rootDir: backend
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
-    autoDeploy: true
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.13.7
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB
-        value: unibo_time_manager
-      - key: REQUIRE_MONGODB
-        value: "true"
+        value: unibo_planner

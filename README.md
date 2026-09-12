@@ -1,68 +1,82 @@
-# UniBo Time Manager
+# UniBo Planner
 
-App mobile personale per Ingegneria Meccanica UniBo (A.A. 2026/27).
+Clone pulito e distribuibile dell'app mobile fornita dall'utente.
 
-Questa versione è predisposta per funzionare senza PC acceso:
+## Cosa contiene
 
-**App Expo/React Native → API FastAPI su Render → MongoDB Atlas → fonti ufficiali UniBo**
-
-Il telefono conserva inoltre una cache locale, quindi l'ultimo orario resta visibile anche offline.
-
-## Funzioni già presenti
-- Home "Oggi" con prossima lezione
+- Expo / React Native + Expo Router
+- Home "Oggi" con prossima lezione e finestre libere
 - Calendario settimanale
-- Task di studio
-- Planner delle finestre libere
-- Sync automatica all'apertura dell'app + pulsante sync manuale
-- Cache offline sul telefono
+- Materie e progresso studio
+- Task CRUD con priorità e scadenze
+- Sessioni di studio ed eventi personali
+- Planner automatico dei blocchi di studio
+- Rilevamento variazioni d'orario UniBo
+- Notifiche locali
+- Light/dark mode
 - Backend FastAPI
-- Recupero orari da pagine ufficiali UniBo
-- Cache persistente MongoDB Atlas
-- Rilevamento cambio aula, cambio orario, nuova lezione e cancellazione
-- Fallback ai dati precedenti se una fonte UniBo fallisce
+- MongoDB Atlas
+- Integrazione con l'endpoint JSON ufficiale UniBo `@@orario_reale_json`
 
-## Deploy cloud consigliato
+## Struttura
 
-Leggi `DEPLOY.md`.
-
-## Sviluppo locale opzionale
-
-### Backend
-```bash
-cd backend
-python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```text
+frontend/     app mobile Expo
+backend/      API FastAPI
+render.yaml   deploy backend su Render
+PRD.md        requisiti/prodotto
 ```
 
-Senza `MONGODB_URI` il backend usa un JSON locale **solo per sviluppo**. Su Render `REQUIRE_MONGODB=true` impedisce di considerare valida una configurazione cloud senza MongoDB.
+## 1. Backend su Render
 
-### Test backend
-```bash
-cd backend
-pytest -q
+Crea un Blueprint usando `render.yaml`.
+
+Variabile obbligatoria:
+
+```text
+MONGODB_URI=mongodb+srv://...
 ```
 
-### Mobile
-```bash
-cd mobile
-npm install
+Il database predefinito è `unibo_planner`.
+
+Dopo il deploy verifica:
+
+```text
+https://TUO-SERVIZIO.onrender.com/health
 ```
 
-Copia `.env.example` in `.env` e imposta l'URL HTTPS di Render:
-```env
-EXPO_PUBLIC_API_URL=https://TUO-SERVIZIO.onrender.com
+deve restituire `databaseOk: true`.
+
+## 2. Frontend
+
+Dentro `frontend/` crea `.env` copiando `.env.example`:
+
+```text
+EXPO_PUBLIC_BACKEND_URL=https://TUO-SERVIZIO.onrender.com
 ```
 
 Poi:
+
 ```bash
+yarn install
 npx expo start
 ```
 
-## Build installabile
-Il progetto include `mobile/eas.json` per Expo EAS. Dopo aver configurato l'URL del backend puoi creare una build Android/iOS con EAS.
+## 3. APK
 
-## Nota
-Il parser UniBo è isolato in `backend/app/unibo_provider.py`: se UniBo cambia il markup, il resto dell'app non deve essere riscritto.
+```bash
+npm install -g eas-cli
+eas login
+cd frontend
+eas build --platform android --profile preview
+```
+
+Il profilo `preview` genera un APK installabile.
+
+## Nota importante
+
+La versione originale esportata da Emergent conteneva file `.env`, cache e `node_modules`.
+Questa copia li esclude intenzionalmente per non distribuire credenziali o file inutili.
+
+Il backend usa la stessa logica dell'app originale, ma accetta direttamente
+`MONGODB_URI` / `MONGODB_DB`, quindi è pronto per MongoDB Atlas + Render.
